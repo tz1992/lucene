@@ -5,7 +5,9 @@ import java.nio.file.Paths;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
 import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -23,27 +25,37 @@ public class SearchEngine {
 
 		DirectoryReader directoryReader = null;
 		// 获取索引
-		Directory directory = FSDirectory.open(Paths.get("E:/luceneTest/index"));
+		Directory directory = FSDirectory.open(Paths.get("./indexDir"));
 		// 读取索引
 		directoryReader = DirectoryReader.open(directory);
 		// 创建search
 		IndexSearcher indexSearcher = new IndexSearcher(directoryReader);
 		// 创建搜索的query
-		// 创建parse用来确定搜索的内容，第二个参数表示搜索的域
-		QueryParser parser = new QueryParser("content", new StandardAnalyzer());// content表示搜索的域或者说字段
-
+		// 创建parse用来确定搜索的内容,也就是field的String name这个参数，第二个参数表示搜索的域
+		QueryParser parser = new QueryParser("id", new StandardAnalyzer());
+         
 		Query query = parser.parse(tag);
+		
 		TopDocs topDocs = indexSearcher.search(query, 20);
+		//和这个关键词有关的field数量
+		int count =topDocs.totalHits;
+		//和这个关键词搜索的相关度
+		float scores=topDocs.getMaxScore();
+		
 		ScoreDoc[] scoreDocs = topDocs.scoreDocs;
-
+		
 		for (ScoreDoc scoreDoc : scoreDocs) {
-	    Document document=indexSearcher.doc(scoreDoc.doc);
-        
-		System.out.println( document.get("name")+document.get("path")+document.get("content"));
+			//根据scoreDocs的doc 获取到这个document
+		Document document=	indexSearcher.doc(scoreDoc.doc);
+		
+		System.out.println(document.get("id")+document.get("name")+document.get("content"));
 		}
 		
+		
 	}
+
+		
 	public static void main(String[] args) throws IOException, ParseException {
-		indexSearch("你");
+		indexSearch("2");
 	}
 }
